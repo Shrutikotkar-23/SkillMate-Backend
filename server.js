@@ -66,6 +66,7 @@ import authRoutes from "./routes/authRoutes.js";
 import sessionRoutes from "./routes/sessionRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import notesRoutes from "./routes/notesRoutes.js";
+import cors from "cors";
 
 // Load environment variables
 dotenv.config();
@@ -80,6 +81,13 @@ if (!process.env.MONGO_URI) {
 connectDb();
 
 const app = express();
+
+// ✅ Use cors
+app.use(cors({
+  origin: "http://localhost:3000", // React frontend
+  credentials: true,              // Needed for cookies
+}));
+
 
 // ✅ Middleware: body parsing and cookie parsing
 app.use(express.json());

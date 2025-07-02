@@ -8,28 +8,22 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: "Name, email, and password are required." });
     }
 
-    const existingUser = await User.findOne({email});
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      console.log(existingUser);
       return res.status(409).json({ message: "User with this email already exists." });
     }
 
     const user = new User({
       name,
       email,
-      password, // Will be hashed by User schema pre-save middleware
+      password, // Hashed by pre-save hook
       skills: skills || [],
       bio: bio || "",
       profilePicture: profilePicture || "",
       portfolio: portfolio || [],
     });
 
-    try {
-      await user.save();
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-      return;
-    }
+    await user.save();
 
     const token = user.generateAuthToken();
 
@@ -40,14 +34,31 @@ export const signup = async (req, res) => {
       maxAge: 3600000,
     });
 
-    res.status(201).json({
-      message: "User registered successfully.",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
-    });
+    // res.status(201).json({
+    //   message: "User registered successfully.",
+    //   token, // ✅ include token for frontend use if needed
+    //   userId: user._id, // ✅ helpful in frontend
+    //   user: {
+    //     id: user._id,
+    //     name: user.name,
+    //     email: user.email,
+    //   },
+    // });
+
+    res.status(200).json({
+        message: "User logged in successfully.",
+        error: false,
+        result: true,
+        token,             // ✅ include this
+        userId: user._id,  // ✅ include this
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          username: user.username,
+        },
+      });
+
   } catch (error) {
     console.error("Signup Controller Error:", error);
     res.status(500).json({ message: "Internal server error. Please try again later." });
@@ -55,23 +66,21 @@ export const signup = async (req, res) => {
 };
 
 export const signin = async (req, res) => {
-
   try {
-
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error:"Email and password are required.", message: "Email and password are required.", result: false });
+      return res.status(400).json({ message: "Email and password are required." });
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ error:"User not found.", message: "User not found. register first", result: false });
+      return res.status(401).json({ message: "User not found. Please register first." });
     }
 
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      return res.status(401).json({ error:"Invalid password.", message: "Invalid password.", result: false });
+      return res.status(401).json({ message: "Invalid password." });
     }
 
     const token = user.generateAuthToken();
@@ -80,13 +89,13 @@ export const signin = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 7* 24* 3600000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     res.status(200).json({
       message: "User logged in successfully.",
-      error: false,
-      result: true,
+      token,         // ✅ for frontend localStorage
+      userId: user._id, // ✅ store for use in portfolio etc.
       user: {
         id: user._id,
         name: user.name,
@@ -95,11 +104,10 @@ export const signin = async (req, res) => {
       },
     });
 
-  } 
-  catch (error) {
-
-    console.error("Sign Controller Error:", error);
-    res.status(500).json({ error:"error in authController login function", message: "Internal server error. Please try again later.", result: false });
+  } catch (error) {
+    console.error("Signin Controller Error:", error);
+    res.status(500).json({
+      message: "Internal server error. Please try again later.",
+    });
   }
-
 };

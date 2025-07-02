@@ -2,7 +2,7 @@
   max-width: 500px;
   margin: 30px auto;
   padding: 20px;
-  background-color: #f7f7f7;
+  background-color: #066c6ad5;
   border-radius: 12px;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
@@ -24,4 +24,17 @@ form button {
 
 form button:hover {
   background-color: #0056b3;
+}
+
+.portfolio-item {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 10px 0;
+  background-color: #f9f9f9;
+}
+
+a {
+  color: #0077cc;
+  text-decoration: none;
 }
