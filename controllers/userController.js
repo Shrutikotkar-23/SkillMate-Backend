@@ -51,17 +51,45 @@ export const getAllNotesBySession = async (req, res) => {
   }
 };
 
-export const addPortfolio = async (req, res) => {
+// export const addPortfolio = async (req, res) => {
 
+//   const { id } = req.params;
+//   const { title, url, description } = req.body;
+
+//   if (req.user.id !== id) {
+//     return res.status(403).json({ message: "Unauthorized access" });
+//   }
+
+//   try {
+//     const userProfile = await User.findOne({ userId: id });
+//     if (!userProfile) {
+//       return res.status(404).json({ message: "User profile not found" });
+//     }
+
+//     userProfile.portfolio.push({ title, url, description });
+//     await userProfile.save();
+
+//     res
+//       .status(201)
+//       .json({
+//         message: "Portfolio item added successfully",
+//         portfolio: userProfile.portfolio,
+//       });
+//   } catch (error) {
+//     res.status(500).json({ message: "Server error", error });
+//   }
+// };
+
+export const addPortfolio = async (req, res) => {
   const { id } = req.params;
   const { title, url, description } = req.body;
 
-  if (req.user.id !== id) {
+  if (req.user._id.toString() !== id) {
     return res.status(403).json({ message: "Unauthorized access" });
   }
 
   try {
-    const userProfile = await User.findOne({ userId: id });
+    const userProfile = await User.findById(id);
     if (!userProfile) {
       return res.status(404).json({ message: "User profile not found" });
     }
@@ -69,43 +97,96 @@ export const addPortfolio = async (req, res) => {
     userProfile.portfolio.push({ title, url, description });
     await userProfile.save();
 
-    res
-      .status(201)
-      .json({
-        message: "Portfolio item added successfully",
-        portfolio: userProfile.portfolio,
-      });
+    res.status(201).json({
+      message: "Portfolio item added successfully",
+      portfolio: userProfile.portfolio,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-export const viewPortfolio = async (req, res) => {
 
+// export const viewPortfolio = async (req, res) => {
+
+//   const { id } = req.params;
+
+//   try {
+//     const userProfile = await UserProfile.findOne({ userId: id });
+//     if (!userProfile) {
+//       return res.status(404).json({ message: "User profile not found" });
+//     }
+
+//     res.status(200).json(userProfile.portfolio);
+//   } catch (error) {
+//     res.status(500).json({ message: "Server error", error });
+//   }
+// };
+
+
+
+export const viewPortfolio = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const userProfile = await UserProfile.findOne({ userId: id });
-    if (!userProfile) {
-      return res.status(404).json({ message: "User profile not found" });
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json(userProfile.portfolio);
+    res.status(200).json(user.portfolio);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.error("View Portfolio Error:", error); // 🔴 log actual error
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+// export const updatePortfolio = async (req, res) => {
+//   const { id, portfolioId } = req.params;
+//   const { title, url, description } = req.body;
+
+//   if (req.user.id !== id) {
+//     return res.status(403).json({ message: "Unauthorized access" });
+//   }
+
+//   try {
+//     const userProfile = await UserProfile.findOne({ userId: id });
+//     if (!userProfile) {
+//       return res.status(404).json({ message: "User profile not found" });
+//     }
+
+//     const portfolioIndex = userProfile.portfolio.findIndex(
+//       (item) => item._id.toString() === portfolioId
+//     );
+//     if (portfolioIndex === -1) {
+//       return res.status(404).json({ message: "Portfolio item not found" });
+//     }
+
+//     // update portfolio item
+//     userProfile.portfolio[portfolioIndex] = { title, url, description };
+//     await userProfile.save();
+
+//     res
+//       .status(200)
+//       .json({
+//         message: "Portfolio item updated",
+//         portfolio: userProfile.portfolio,
+//       });
+//   } catch (error) {
+//     res.status(500).json({ message: "Server error", error });
+//   }
+// };
 
 export const updatePortfolio = async (req, res) => {
   const { id, portfolioId } = req.params;
   const { title, url, description } = req.body;
 
-  if (req.user.id !== id) {
+  if (req.user._id.toString() !== id) {
     return res.status(403).json({ message: "Unauthorized access" });
   }
 
   try {
-    const userProfile = await UserProfile.findOne({ userId: id });
+    const userProfile = await User.findById(id);
     if (!userProfile) {
       return res.status(404).json({ message: "User profile not found" });
     }
@@ -113,21 +194,19 @@ export const updatePortfolio = async (req, res) => {
     const portfolioIndex = userProfile.portfolio.findIndex(
       (item) => item._id.toString() === portfolioId
     );
+
     if (portfolioIndex === -1) {
       return res.status(404).json({ message: "Portfolio item not found" });
     }
 
-    // update portfolio item
     userProfile.portfolio[portfolioIndex] = { title, url, description };
     await userProfile.save();
 
-    res
-      .status(200)
-      .json({
-        message: "Portfolio item updated",
-        portfolio: userProfile.portfolio,
-      });
+    res.status(200).json({
+      message: "Portfolio item updated",
+      portfolio: userProfile.portfolio,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
